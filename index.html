@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Hardcoded GS Flashcard</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Noto+Serif+JP:wght@400;600;900&display=swap');
+        
+        @media print {
+            .editor-panel { display: none !important; }
+            body { background: #fff !important; margin: 0; padding: 0; }
+            .preview-panel { justify-content: center; width: 100%; gap: 20px;}
+            .card-container { -webkit-print-color-adjust: exact; print-color-adjust: exact; page-break-inside: avoid; box-shadow: none !important; margin: 0;}
+            .front-inner, .back-inner { background: #fff !important; } /* Clean white for printing */
+        }
+        
+        body { margin: 0; display: flex; height: 100vh; font-family: 'Noto Sans JP', sans-serif; background-color: #e0e5ec; }
+        
+        .editor-panel { width: 420px; background-color: #2c3e50; color: white; padding: 20px; overflow-y: auto; box-shadow: 2px 0 10px rgba(0,0,0,0.2); font-family: Arial, sans-serif;}
+        .editor-panel h2 { margin-top: 10px; font-size: 16px; border-bottom: 1px solid #555; padding-bottom: 5px; color:#2ecc71;}
+        .input-group { margin-bottom: 10px; }
+        .input-group label { display: block; font-size: 11px; margin-bottom: 3px; color: #ccc; }
+        .input-group input { width: 100%; padding: 6px; box-sizing: border-box; border-radius: 4px; border: none; font-size: 13px;}
+        .row-group { display: flex; gap: 10px; }
+        .row-group .input-group { flex: 1; }
+        
+        .auto-btn { background-color: #3498db; color: white; border: none; padding: 10px; width: 100%; font-size: 14px; cursor: pointer; border-radius: 4px; font-weight: bold; margin-bottom: 10px;}
+        .auto-btn:hover { background-color: #2980b9; }
+        .print-btn { background-color: #27ae60; color: white; border: none; padding: 12px 15px; width: 100%; font-size: 16px; cursor: pointer; border-radius: 4px; margin-bottom: 10px; font-weight:bold;}
+        .print-btn:hover { background-color: #2ecc71; }
+        
+        .sheet-panel { background: #8e44ad; padding: 15px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #732d91;}
+        .nav-btn { background: #fff; color: #8e44ad; border: none; padding: 6px 12px; font-weight: bold; border-radius: 4px; cursor: pointer;}
+        .nav-btn:hover { background: #eee;}
+        .nav-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .preview-panel { flex: 1; padding: 40px; display: flex; align-items: flex-start; gap: 25px; overflow-y: auto; flex-wrap: wrap; }
+
+        /* ----------- PREMIUM PIXEL PERFECT CARD CSS ----------- */
+        .card-container { 
+            width: 440px; height: 620px; 
+            background-color: #fff; 
+            padding: 12px; 
+            box-sizing: border-box; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15), 0 5px 15px rgba(0,0,0,0.05);
+            position: relative; 
+            border-radius: 8px;
+        }
+        
+        .front-inner { 
+            border: 2px solid #0c1e3e; 
+            outline: 1px solid #0c1e3e;
+            outline-offset: 4px;
+            height: 100%; 
+            box-sizing: border-box; 
+            position: relative; 
+            padding: 15px; 
+            overflow: hidden; 
+            background: linear-gradient(135deg, #ffffff 0%, #f4f7fb 100%);
+        }
+        .front-inner::before { 
+            content: ''; position: absolute; top: 4px; left: 4px; right: 4px; bottom: 4px; 
+            border: 1px solid #d4af37; pointer-events: none; z-index: 10;
+        }
+        
+        .back-inner { 
+            border: 2px solid #2d6639; outline: 1px solid #2d6639; outline-offset: 4px;
+            height: 100%; box-sizing: border-box; position: relative; padding: 15px 20px; overflow: hidden;
+            background: linear-gradient(135deg, #ffffff 0%, #f0f7f3 100%);
+        }
+        .back-inner::before { 
+            content: ''; position: absolute; top: 4px; left: 4px; right: 4px; bottom: 4px; 
+            border: 1px solid #d4af37; pointer-events: none; z-index: 10;
+        }
+
+        .flower-icon { color: #eb96a3; font-size: 16px; margin-left: 5px; }
+        .footer { position: absolute; bottom: 15px; width: 100%; text-align: center; font-size: 11px; font-weight: bold; left: 0;}
+        
+        .front-header { display: flex; align-items: center; justify-content: space-between; }
+        .level-badge { 
+            background: linear-gradient(135deg, #0c1e3e, #1a3668); color: #fff; padding: 4px 15px; 
+            border-radius: 12px; font-size: 14px; font-weight: bold; letter-spacing: 1px;
+            border: 1px solid #d4af37; box-shadow: 0 2px 4px rgba(12,30,62,0.3);
+        }
+        
+        .front-body { display: flex; margin-top: 15px; height: 490px; }
+        .front-left { width: 42%; position: relative; border-right: 1px dashed #c8d4e3; display: flex; flex-direction: column; align-items: center; padding-right: 15px; }
+        .watermark { position: absolute; font-size: 260px; color: #f0f3f7; font-family: 'Noto Serif JP', serif; top: 10%; left: -10px; z-index: 0; user-select: none; }
+        .main-kanji { font-size: 120px; font-family: 'Noto Serif JP', serif; font-weight: 900; color: #000; z-index: 1; margin: 10px 0 20px 0; line-height: 1; }
+        .yomi-section { width: 100%; text-align: center; z-index: 1; margin-bottom: 12px; }
+        .yomi-title { background: #0c1e3e; color: #fff; padding: 3px 10px; border-radius: 12px; font-size: 10px; display: inline-block; margin-bottom: 6px; }
+        .yomi-text { font-size: 13px; font-weight: bold; word-break: break-word; line-height: 1.3; }
+        .divider { width: 100%; border-top: 1px solid #c8d4e3; margin: 5px 0; position: relative; }
+        .divider::after { content: '✿'; position: absolute; top: -9px; left: 45%; font-size: 12px; color: #0c1e3e; background: #fff; padding: 0 5px; }
+        .basic-word-box { border: 1px solid #0c1e3e; border-radius: 8px; width: 100%; margin-top: 15px; padding: 15px 10px 10px; box-sizing: border-box; position: relative; background: #fff; z-index: 1; box-shadow: 0 2px 5px rgba(0,0,0,0.05);}
+        .basic-word-title { background: #0c1e3e; color: #fff; padding: 2px 10px; border-radius: 10px; font-size: 10px; position: absolute; top: -10px; left: 10px; }
+        .basic-word-jp { font-size: 14px; font-weight: bold; margin-bottom: 6px; line-height: 1.3; word-break: break-word;}
+        .basic-word-en { font-size: 11px; color: #333; margin-top: 3px; line-height: 1.2;}
+        
+        .front-right { width: 58%; padding-left: 15px; z-index: 1; }
+        .stroke-title-bar { background: #0c1e3e; color: #fff; border-radius: 12px; font-size: 11px; padding: 4px 10px; display: inline-flex; align-items: center; margin-bottom: 10px; }
+        .stroke-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border-top: 1px solid #ccc; border-left: 1px solid #ccc; margin-bottom: 20px;}
+        .s-box { border-bottom: 1px solid #ccc; border-right: 1px solid #ccc; height: 50px; display: flex; justify-content: center; align-items: center; position: relative; background: #fff;}
+        .s-num { position: absolute; top: 3px; left: 3px; background: #0c1e3e; color: #fff; font-size: 9px; width: 14px; height: 14px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-family: Arial; z-index: 5;}
+        .s-box svg { width: 44px; height: 44px; margin-top: 4px; }
+        
+        .meaning-list { list-style: none; padding: 0; margin: 0; }
+        .meaning-list li { display: flex; align-items: flex-start; margin-bottom: 15px; }
+        .m-icon { width: 24px; height: 24px; border-radius: 50%; display: flex; justify-content: center; align-items: center; color: #fff; font-size: 11px; margin-right: 10px; flex-shrink: 0; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1);}
+        .bg-red { background: #cd5c5c; } .bg-green { background: #558b2f; } .bg-blue { background: #1565c0; }
+        .m-content h4 { margin: 0 0 3px 0; font-size: 11px; font-weight: bold; color: #000; }
+        .m-content p { margin: 0; font-size: 12px; color: #222; word-break: break-word; line-height: 1.3;}
+
+        .back-header { text-align: center; margin-bottom: 15px; position: relative; }
+        .back-badge { background: linear-gradient(135deg, #2d6639, #3a854a); color: #fff; display: inline-block; padding: 5px 30px; border-radius: 4px; font-size: 14px; font-weight: bold; clip-path: polygon(10% 0, 90% 0, 100% 50%, 90% 100%, 10% 100%, 0 50%); margin-bottom: 15px;}
+        .words-title { background: #e8f0e9; color: #2d6639; font-weight: bold; padding: 6px; border-radius: 6px; font-size: 14px; display: flex; justify-content: center; align-items: center; gap: 8px;}
+        
+        .word-row { border: 1px solid #2d6639; border-radius: 8px; display: flex; margin-bottom: 12px; padding: 10px; background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.03);}
+        .w-left { width: 42%; border-right: 1px dashed #a0c2a8; padding-right: 10px; }
+        .w-right { width: 58%; padding-left: 15px; }
+        
+        .w-jp-title { font-size: 14px; font-weight: bold; margin-bottom: 8px; display: flex; align-items: flex-start; line-height: 1.3; }
+        .w-num { background: #2d6639; color: #fff; width: 18px; height: 18px; border-radius: 50%; display: inline-flex; justify-content: center; align-items: center; font-size: 11px; margin-right: 8px; font-family: Arial; flex-shrink: 0; margin-top: 1px;}
+        .w-meaning { font-size: 11px; color: #222; margin-bottom: 4px; padding-left: 26px; line-height: 1.3;}
+        
+        .s-jp { font-size: 13px; font-weight: bold; margin-bottom: 8px; display: flex; line-height: 1.3;}
+        .s-arrow { color: #2d6639; margin-right: 5px; font-size: 11px; margin-top: 2px; flex-shrink: 0;}
+        .s-kana { font-size: 11px; color: #444; margin-bottom: 4px; padding-left: 15px; }
+        .s-bn { font-size: 11px; color: #222; padding-left: 15px; }
+        
+        .flower-dec { position: absolute; bottom: 20px; right: 10px; opacity: 0.8; width: 60px; pointer-events: none;}
+        .placeholder-text { color: #cc0000; font-style: italic; }
+    </style>
+</head>
+<body>
+
+    <!-- Editor Panel -->
+    <div class="editor-panel">
+        <button class="print-btn" onclick="window.print()">🖨️ Save PDF / Print</button>
+        
+        <!-- Google Apps Script API Panel (Hardcoded URL) -->
+        <div class="sheet-panel">
+            <label style="color:#fff; font-size:14px; margin-bottom:12px; display:block; font-weight:bold; text-align:center;">
+                ✅ Google Sheet Linked Successfully
+            </label>
+            <button class="auto-btn" style="background:#fff; color:#8e44ad; font-size: 16px; padding: 12px;" onclick="loadFromGS()">📥 Load Cards</button>
+            
+            <div id="nav-container" style="display:none; justify-content:space-between; align-items:center; margin-top:10px;">
+                <button class="nav-btn" id="btn-prev" onclick="changeCard(-1)">⬅️ Prev</button>
+                <span id="card-counter" style="color:#fff; font-weight:bold; font-size:13px;">Card 1 / 1</span>
+                <button class="nav-btn" id="btn-next" onclick="changeCard(1)">Next ➡️</button>
+            </div>
+
+            <div id="action-buttons" style="display:none; flex-direction:column; gap:8px; margin-top:10px;">
+                <button id="add-new-mode-btn" class="auto-btn" style="background: #27ae60; margin: 0; padding: 10px; font-size: 14px;" onclick="prepareNewCard()">
+                    ➕ Add New Card (Clear Form)
+                </button>
+                
+                <!-- SAVE TO SHEET BUTTON -->
+                <button id="save-btn" class="auto-btn" style="background: linear-gradient(135deg, #e67e22, #d35400); margin: 0; color:#fff; font-size: 15px; padding: 12px; border: 2px solid #f39c12; letter-spacing: 0.5px; transition: all 0.3s ease;" onclick="saveToGS()" onmouseover="this.style.transform='scale(1.02)'; this.style.boxShadow='0 4px 15px rgba(230,126,34,0.4)'" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none'">
+                    💾 Save Changes to Sheet
+                </button>
+            </div>
+            <div id="save-msg" style="font-size:12px; margin-top:6px; text-align:center; min-height:18px;"></div>
+
+            <div id="sheet-msg" style="color:yellow; font-size:12px; margin-top:8px; text-align:center;"></div>
+        </div>
+
+        <div class="input-group" style="background:#34495e; padding:10px; border-radius:5px; margin-bottom: 15px; border:1px dashed #7f8c8d;">
+            <label style="color:#fff; font-size:11px;">Or Fetch Single Kanji from Internet</label>
+            <div style="display:flex; gap:5px;">
+                <input type="text" id="kanji-input" oninput="updateText('out-kanji', this.value)" placeholder="e.g. 食べる" style="text-align:center;">
+                <button class="auto-btn" style="margin:0; width:auto; font-size:12px;" onclick="fetchKanjiData()">🔍 Fetch</button>
+            </div>
+        </div>
+
+        <h2>FRONT CARD DETAILS</h2>
+        <div class="row-group">
+            <div class="input-group"><label>Level</label><input type="text" id="level-input" oninput="updateBadge(); markDirty()" value="N5"></div>
+            <div class="input-group"><label>Card Number</label><input type="text" id="card-num-input" oninput="updateBadge(); markDirty()" value="001"></div>
+        </div>
+        <div class="row-group">
+            <div class="input-group"><label>Total Strokes</label><input type="number" id="stroke-count-input" disabled value="" style="background:#ddd;"></div>
+            <div class="input-group"><label>Kun-yomi</label><input type="text" id="kun-input" oninput="updateText('out-kun', this.value); markDirty()" value=""></div>
+        </div>
+        <div class="input-group"><label>On-yomi</label><input type="text" id="on-input" oninput="updateText('out-on', this.value); markDirty()" value=""></div>
+
+        <h2>BACK CARD: WORD 1</h2>
+        <div class="row-group"><div class="input-group"><label>Word (Kanji + Kana)</label><input type="text" id="in-w1-jp" oninput="updateText('out-w1-jp', this.value); updateText('out-basic-jp', this.value); markDirty()" value=""></div></div>
+        <div class="row-group">
+            <div class="input-group"><label>Meaning (BN)</label><input type="text" id="in-w1-bn" oninput="updateText('out-w1-bn', this.value); updateText('out-mean-bn', this.value); updateText('out-mean-bn2', this.value); markDirty()" value=""></div>
+            <div class="input-group"><label>Meaning (EN)</label><input type="text" id="in-w1-en" oninput="updateText('out-w1-en', this.value); updateText('out-mean-en', this.value); updateText('out-mean-en2', this.value); markDirty()" value=""></div>
+        </div>
+        <div class="input-group"><label>Sentence (JP)</label><input type="text" id="in-s1-jp" oninput="updateText('out-s1-jp', this.value); markDirty()" value=""></div>
+        <div class="row-group">
+            <div class="input-group"><label>Sentence (Kana)</label><input type="text" id="in-s1-kana" oninput="updateText('out-s1-kana', this.value); markDirty()" value=""></div>
+            <div class="input-group"><label>Sentence (BN)</label><input type="text" id="in-s1-bn" oninput="updateText('out-s1-bn', this.value); markDirty()" value=""></div>
+        </div>
+
+        <h2>BACK CARD: WORD 2</h2>
+        <div class="row-group"><div class="input-group"><label>Word (Kanji + Kana)</label><input type="text" id="in-w2-jp" oninput="updateText('out-w2-jp', this.value); markDirty()" value=""></div></div>
+        <div class="row-group">
+            <div class="input-group"><label>Meaning (BN)</label><input type="text" id="in-w2-bn" oninput="updateText('out-w2-bn', this.value); markDirty()" value=""></div>
+            <div class="input-group"><label>Meaning (EN)</label><input type="text" id="in-w2-en" oninput="updateText('out-w2-en', this.value); markDirty()" value=""></div>
+        </div>
+        <div class="input-group"><label>Sentence (JP)</label><input type="text" id="in-s2-jp" oninput="updateText('out-s2-jp', this.value); markDirty()" value=""></div>
+        <div class="row-group">
+            <div class="input-group"><label>Sentence (Kana)</label><input type="text" id="in-s2-kana" oninput="updateText('out-s2-kana', this.value); markDirty()" value=""></div>
+            <div class="input-group"><label>Sentence (BN)</label><input type="text" id="in-s2-bn" oninput="updateText('out-s2-bn', this.value); markDirty()" value=""></div>
+        </div>
+
+        <h2>BACK CARD: WORD 3</h2>
+        <div class="row-group"><div class="input-group"><label>Word (Kanji + Kana)</label><input type="text" id="in-w3-jp" oninput="updateText('out-w3-jp', this.value); markDirty()" value=""></div></div>
+        <div class="row-group">
+            <div class="input-group"><label>Meaning (BN)</label><input type="text" id="in-w3-bn" oninput="updateText('out-w3-bn', this.value); markDirty()" value=""></div>
+            <div class="input-group"><label>Meaning (EN)</label><input type="text" id="in-w3-en" oninput="updateText('out-w3-en', this.value); markDirty()" value=""></div>
+        </div>
+        <div class="input-group"><label>Sentence (JP)</label><input type="text" id="in-s3-jp" oninput="updateText('out-s3-jp', this.value); markDirty()" value=""></div>
+        <div class="row-group">
+            <div class="input-group"><label>Sentence (Kana)</label><input type="text" id="in-s3-kana" oninput="updateText('out-s3-kana', this.value); markDirty()" value=""></div>
+            <div class="input-group"><label>Sentence (BN)</label><input type="text" id="in-s3-bn" oninput="updateText('out-s3-bn', this.value); markDirty()" value=""></div>
+        </div>
+    </div>
+
+    <!-- Preview Panel (Output) -->
+    <div class="preview-panel">
+        <div class="card-container">
+            <div class="front-inner">
+                <div class="front-header">
+                    <div class="level-badge"><span id="out-card-num">N5 - 001</span> <span class="flower-icon">🌸</span></div>
+                </div>
+                <div class="front-body">
+                    <div class="front-left">
+                        <div class="watermark" id="out-watermark">見</div>
+                        <div class="main-kanji" id="out-kanji">見</div>
+                        <div class="yomi-section">
+                            <div class="yomi-title">くんよみ (Kun-yomi)</div>
+                            <div class="yomi-text" id="out-kun">みる</div>
+                        </div>
+                        <div class="yomi-section">
+                            <div class="yomi-title">おんよみ (On-yomi)</div>
+                            <div class="yomi-text" id="out-on">ケン</div>
+                        </div>
+                        <div class="divider"></div>
+                        <div class="basic-word-box">
+                            <div class="basic-word-title">BASIC WORD</div>
+                            <div class="basic-word-jp" id="out-basic-jp">見る (みる)</div>
+                            <div class="basic-word-en" id="out-mean-bn">দেখা</div>
+                            <div class="basic-word-en" id="out-mean-en">See / Look</div>
+                        </div>
+                    </div>
+                    <div class="front-right">
+                        <div class="stroke-title-bar">✍ STROKE ORDER (<span id="out-stroke-count">7</span> strokes)</div>
+                        <div class="stroke-grid" id="stroke-preview-container"></div>
+                        <ul class="meaning-list">
+                            <li><div class="m-icon bg-red">📖</div><div class="m-content"><h4>Hiragana Word</h4><p style="font-weight:bold;" id="out-kun-copy">みる</p></div></li>
+                            <li><div class="m-icon bg-green">Aঅ</div><div class="m-content"><h4>অর্থ (বাংলা)</h4><p id="out-mean-bn2">দেখা</p></div></li>
+                            <li><div class="m-icon bg-blue">Aa</div><div class="m-content"><h4>Meaning (English)</h4><p id="out-mean-en2">See / Look</p></div></li>
+                        </ul>
+                    </div>
+                </div>
+                <svg class="flower-dec" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M20,80 Q50,50 80,20" stroke="#5d4037" stroke-width="2" fill="none"/><circle cx="70" cy="30" r="5" fill="#f8bbd0"/><circle cx="75" cy="25" r="5" fill="#f48fb1"/><circle cx="80" cy="30" r="5" fill="#f8bbd0"/><circle cx="30" cy="70" r="4" fill="#f48fb1"/><circle cx="45" cy="50" r="3" fill="#f8bbd0"/></svg>
+                <div class="footer" style="color: #0c1e3e;">🌸 Sumaya Shimu 01609-801372 🌸</div>
+            </div>
+        </div>
+
+        <div class="card-container">
+            <div class="back-inner">
+                <div class="back-header">
+                    <div class="back-badge">🌿 BACK 🌿</div>
+                    <div class="words-title"><span style="background:#2d6639; color:#fff; padding:2px 4px; border-radius:4px; font-size:12px;">📖</span> WORDS & SENTENCES</div>
+                </div>
+                <div class="word-row">
+                    <div class="w-left">
+                        <div class="w-jp-title"><div class="w-num">1</div> <span><span id="out-w1-jp">見る (みる)</span></span></div>
+                        <div class="w-meaning" id="out-w1-bn">দেখা</div>
+                        <div class="w-meaning" id="out-w1-en">See / Look</div>
+                    </div>
+                    <div class="w-right">
+                        <div class="s-jp"><span class="s-arrow">▶</span> <span id="out-s1-jp">テレビを見ます。</span></div>
+                        <div class="s-kana" id="out-s1-kana">てれびを みます。</div>
+                        <div class="s-bn" id="out-s1-bn">আমি টিভি দেখি।</div>
+                    </div>
+                </div>
+                <div class="word-row">
+                    <div class="w-left">
+                        <div class="w-jp-title"><div class="w-num">2</div> <span><span id="out-w2-jp">見せる (みせる)</span></span></div>
+                        <div class="w-meaning" id="out-w2-bn">দেখানো</div>
+                        <div class="w-meaning" id="out-w2-en">Show</div>
+                    </div>
+                    <div class="w-right">
+                        <div class="s-jp"><span class="s-arrow">▶</span> <span id="out-s2-jp">写真を見せます。</span></div>
+                        <div class="s-kana" id="out-s2-kana">しゃしんを みせます。</div>
+                        <div class="s-bn" id="out-s2-bn">আমি ছবি দেখাই।</div>
+                    </div>
+                </div>
+                <div class="word-row">
+                    <div class="w-left">
+                        <div class="w-jp-title"><div class="w-num">3</div> <span><span id="out-w3-jp">見物 (けんぶつ)</span></span></div>
+                        <div class="w-meaning" id="out-w3-bn">দর্শন / ঘুরে দেখা</div>
+                        <div class="w-meaning" id="out-w3-en">Sightseeing</div>
+                    </div>
+                    <div class="w-right">
+                        <div class="s-jp"><span class="s-arrow">▶</span> <span id="out-s3-jp">京都を見物します。</span></div>
+                        <div class="s-kana" id="out-s3-kana">きょうとを けんぶつします。</div>
+                        <div class="s-bn" id="out-s3-bn">আমি কিয়োটো ঘুরে দেখি।</div>
+                    </div>
+                </div>
+                <div class="footer" style="color: #2d6639;">❖ Sumaya Shimu 01609-801372 ❖</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        const APP_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbznhGpPrDwvvJxmo_5r1FJ-1vYJEWb5wB3TymL3VeTmiFNINwbjbCLMNRPCiX3XQiV-ww/exec";
+
+        let sheetCards = [];
+        let currentIndex = 0;
+        let isDirty = false; // Track if user has made edits
+        let isNewCardMode = false;
+
+        function markDirty() {
+            isDirty = true;
+            const saveBtn = document.getElementById('save-btn');
+            if (saveBtn && (sheetCards.length > 0 || isNewCardMode)) {
+                saveBtn.style.background = 'linear-gradient(135deg, #e74c3c, #c0392b)';
+                saveBtn.style.borderColor = '#e74c3c';
+                saveBtn.innerHTML = isNewCardMode ? '🚀 ⚠️ Ready to Add — Click to Save!' : '💾 ⚠️ Unsaved Changes — Click to Save!';
+            }
+        }
+
+        function clearDirty() {
+            isDirty = false;
+            const saveBtn = document.getElementById('save-btn');
+            if (saveBtn) {
+                saveBtn.style.background = 'linear-gradient(135deg, #27ae60, #2ecc71)';
+                saveBtn.style.borderColor = '#2ecc71';
+                saveBtn.innerHTML = '✅ Saved Successfully!';
+                setTimeout(() => {
+                    saveBtn.style.background = 'linear-gradient(135deg, #e67e22, #d35400)';
+                    saveBtn.style.borderColor = '#f39c12';
+                    saveBtn.innerHTML = isNewCardMode ? '🚀 Save New Card to Sheet' : '💾 Save Changes to Sheet';
+                }, 2500);
+            }
+        }
+
+        function prepareNewCard() {
+            if (isDirty) {
+                if (!confirm("⚠️ আপনার এডিট সেভ হয়নি!\nনতুন কার্ড তৈরি করতে চাইলে OK চাপুন (এডিট মুছে যাবে)।")) return;
+            }
+            
+            isNewCardMode = true;
+            isDirty = true;
+            document.getElementById('nav-container').style.display = 'none';
+            document.getElementById('action-buttons').style.display = 'flex';
+            document.getElementById('save-msg').innerText = "নতুন কার্ডের তথ্য লিখুন এবং Save এ ক্লিক করুন।";
+            document.getElementById('save-msg').style.color = "#f39c12";
+
+            const saveBtn = document.getElementById('save-btn');
+            saveBtn.innerHTML = '🚀 Save New Card to Sheet';
+            saveBtn.style.background = 'linear-gradient(135deg, #8e44ad, #9b59b6)';
+
+            // Clear inputs
+            const inputs = document.querySelectorAll('.editor-panel input[type="text"], .editor-panel input[type="number"]');
+            inputs.forEach(input => {
+                input.value = "";
+                // trigger oninput manually for all to clear preview
+                input.dispatchEvent(new Event('input'));
+            });
+            
+            // Specifically keep level as default if desired or clear
+            setInputValue('level-input', 'N5'); updateBadge();
+        }
+
+        // --- SAVE TO GOOGLE SHEET ---
+        async function saveToGS() {
+            const saveMsg = document.getElementById('save-msg');
+            const saveBtn = document.getElementById('save-btn');
+
+            if (sheetCards.length === 0 && !isNewCardMode) {
+                saveMsg.innerText = "⚠️ আগে Sheet থেকে ডাটা Load করুন!";
+                saveMsg.style.color = "#e74c3c";
+                return;
+            }
+
+            // Collect current values from input fields
+            const rowData = [
+                document.getElementById('level-input').value || "",          // 0: Level
+                document.getElementById('card-num-input').value || "",       // 1: Card Number
+                document.getElementById('kanji-input').value || "",          // 2: Kanji
+                document.getElementById('kun-input').value || "",            // 3: Kun-yomi
+                document.getElementById('on-input').value || "",             // 4: On-yomi
+                document.getElementById('in-w1-bn').value || "",             // 5: Meaning BN (basic)
+                document.getElementById('in-w1-en').value || "",             // 6: Meaning EN (basic)
+                document.getElementById('in-w1-jp').value || "",             // 7: W1 JP
+                document.getElementById('in-w1-bn').value || "",             // 8: W1 BN
+                document.getElementById('in-w1-en').value || "",             // 9: W1 EN
+                document.getElementById('in-s1-jp').value || "",             // 10: S1 JP
+                document.getElementById('in-s1-kana').value || "",           // 11: S1 Kana
+                document.getElementById('in-s1-bn').value || "",             // 12: S1 BN
+                document.getElementById('in-w2-jp').value || "",             // 13: W2 JP
+                document.getElementById('in-w2-bn').value || "",             // 14: W2 BN
+                document.getElementById('in-w2-en').value || "",             // 15: W2 EN
+                document.getElementById('in-s2-jp').value || "",             // 16: S2 JP
+                document.getElementById('in-s2-kana').value || "",           // 17: S2 Kana
+                document.getElementById('in-s2-bn').value || "",             // 18: S2 BN
+                document.getElementById('in-w3-jp').value || "",             // 19: W3 JP
+                document.getElementById('in-w3-bn').value || "",             // 20: W3 BN
+                document.getElementById('in-w3-en').value || "",             // 21: W3 EN
+                document.getElementById('in-s3-jp').value || "",             // 22: S3 JP
+                document.getElementById('in-s3-kana').value || "",           // 23: S3 Kana
+                document.getElementById('in-s3-bn').value || "",             // 24: S3 BN
+            ];
+
+            // The sheet row number
+            let sheetRowNumber;
+            if (isNewCardMode) {
+                // If appending, append to the end of the sheetCards
+                sheetRowNumber = sheetCards.length + 2; 
+            } else {
+                sheetRowNumber = currentIndex + 2;
+            }
+
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '⏳ Saving...';
+            saveBtn.style.background = 'linear-gradient(135deg, #7f8c8d, #95a5a6)';
+            saveMsg.innerText = "Sheet এ সেভ হচ্ছে... অপেক্ষা করুন।";
+            saveMsg.style.color = "#f1c40f";
+
+            try {
+                const response = await fetch(APP_SCRIPT_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "text/plain" },
+                    body: JSON.stringify({
+                        action: "update",
+                        row: sheetRowNumber,
+                        data: rowData
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.status === "success") {
+                    if (isNewCardMode) {
+                        sheetCards.push(rowData);
+                        currentIndex = sheetCards.length - 1;
+                        isNewCardMode = false;
+                        document.getElementById('nav-container').style.display = 'flex';
+                    } else {
+                        sheetCards[currentIndex] = rowData;
+                    }
+                    
+                    saveMsg.innerHTML = "✅ সফলভাবে Google Sheet এ সেভ হয়েছে!";
+                    saveMsg.style.color = "#2ecc71";
+                    clearDirty();
+                    
+                    // Update navigation counters
+                    document.getElementById('card-counter').innerText = `Card ${currentIndex + 1} / ${sheetCards.length}`;
+                    document.getElementById('btn-prev').disabled = currentIndex === 0;
+                    document.getElementById('btn-next').disabled = currentIndex === sheetCards.length - 1;
+                } else {
+                    saveMsg.innerHTML = "❌ Error: " + (result.message || "সেভ করতে সমস্যা হয়েছে।");
+                    saveMsg.style.color = "#e74c3c";
+                }
+            } catch (e) {
+                saveMsg.innerHTML = "❌ সংযোগ ব্যর্থ। ইন্টারনেট চেক করুন।";
+                saveMsg.style.color = "#e74c3c";
+            }
+
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '💾 Save Changes to Sheet';
+            saveBtn.style.background = 'linear-gradient(135deg, #e67e22, #d35400)';
+        }
+
+        function updateText(elementId, newText) {
+            let el = document.getElementById(elementId);
+            if(el) { 
+                if(newText === "[বাংলা অর্থ]" || newText === "[বাক্য লিখুন]") {
+                    el.innerHTML = `<span class="placeholder-text">${newText}</span>`;
+                } else {
+                    el.innerText = newText || ""; 
+                }
+            }
+            if(elementId === 'out-kanji') { document.getElementById('out-watermark').innerText = newText; }
+        }
+
+        function setInputValue(id, val) {
+            let el = document.getElementById(id);
+            if(el) { el.value = val || ""; }
+        }
+
+        function updateBadge() {
+            let lvl = document.getElementById('level-input').value || "";
+            let num = document.getElementById('card-num-input').value || "";
+            let txt = lvl;
+            if(lvl && num) txt += " - " + num;
+            else if(num) txt = num;
+            updateText('out-card-num', txt);
+        }
+
+        // --- GOOGLE APPS SCRIPT LOAD LOGIC ---
+        async function loadFromGS() {
+            const msg = document.getElementById('sheet-msg');
+            msg.innerText = "Loading data from Google Sheet... Please wait.";
+            msg.style.color = "yellow";
+            
+            try {
+                const response = await fetch(APP_SCRIPT_URL);
+                const result = await response.json();
+                
+                if(result.status === "setup") {
+                    msg.innerHTML = "✅ Headers created in your blank Sheet!<br>Now type some Kanji data in your sheet and click Load again.";
+                    msg.style.color = "#2ecc71";
+                    document.getElementById('action-buttons').style.display = 'flex';
+                    return;
+                }
+                
+                sheetCards = result.data.filter(row => row[1] && row[1].trim() !== ''); // Checking Kanji column which is row[1] now
+                
+                if(sheetCards.length > 0) {
+                    currentIndex = 0;
+                    document.getElementById('nav-container').style.display = 'flex';
+                    document.getElementById('action-buttons').style.display = 'flex';
+                    msg.innerText = `✅ Successfully loaded ${sheetCards.length} cards!`;
+                    msg.style.color = "#2ecc71";
+                    populateCardFromSheet();
+                } else {
+                    document.getElementById('action-buttons').style.display = 'flex';
+                    msg.innerText = "Sheet has headers but no Kanji data found. Click 'Add New Card' to create your first card!";
+                    msg.style.color = "#f39c12";
+                }
+            } catch(e) {
+                msg.innerText = "❌ Error: Could not connect to the Google Sheet.";
+                msg.style.color = "#e74c3c";
+            }
+        }
+
+        function changeCard(step) {
+            // Warn if unsaved changes
+            if (isDirty) {
+                if (!confirm("⚠️ আপনার এডিট সেভ হয়নি!\nনতুন কার্ডে যেতে চাইলে OK চাপুন, বা Cancel চেপে আগে Save করুন।")) {
+                    return;
+                }
+            }
+
+            if(sheetCards.length === 0) return;
+            currentIndex += step;
+            if(currentIndex < 0) currentIndex = 0;
+            if(currentIndex >= sheetCards.length) currentIndex = sheetCards.length - 1;
+            
+            isDirty = false;
+            isNewCardMode = false;
+            document.getElementById('action-buttons').style.display = 'flex';
+            document.getElementById('save-msg').innerText = "";
+            populateCardFromSheet();
+        }
+
+        function populateCardFromSheet() {
+            const row = sheetCards[currentIndex];
+            if(!row) return;
+
+            document.getElementById('card-counter').innerText = `Card ${currentIndex + 1} / ${sheetCards.length}`;
+            document.getElementById('btn-prev').disabled = currentIndex === 0;
+            document.getElementById('btn-next').disabled = currentIndex === sheetCards.length - 1;
+
+            setInputValue('level-input', row[0]);
+            setInputValue('card-num-input', row[1]);
+            updateBadge(); // Automatically updates badge combining N5 - 001
+
+            setInputValue('kanji-input', row[2]); updateText('out-kanji', row[2]);
+            setInputValue('kun-input', row[3]); updateText('out-kun', row[3]); 
+            updateText('out-kun-copy', row[3] ? row[3].split(',')[0] : "");
+            setInputValue('on-input', row[4]); updateText('out-on', row[4]);
+
+            updateText('out-mean-bn', row[5]); updateText('out-mean-bn2', row[5]);
+            updateText('out-mean-en', row[6]); updateText('out-mean-en2', row[6]);
+
+            setInputValue('in-w1-jp', row[7]); updateText('out-w1-jp', row[7]); updateText('out-basic-jp', row[7]);
+            setInputValue('in-w1-bn', row[8]); updateText('out-w1-bn', row[8]);
+            setInputValue('in-w1-en', row[9]); updateText('out-w1-en', row[9]);
+            setInputValue('in-s1-jp', row[10]); updateText('out-s1-jp', row[10]);
+            setInputValue('in-s1-kana', row[11]); updateText('out-s1-kana', row[11]);
+            setInputValue('in-s1-bn', row[12]); updateText('out-s1-bn', row[12]);
+
+            setInputValue('in-w2-jp', row[13]); updateText('out-w2-jp', row[13]);
+            setInputValue('in-w2-bn', row[14]); updateText('out-w2-bn', row[14]);
+            setInputValue('in-w2-en', row[15]); updateText('out-w2-en', row[15]);
+            setInputValue('in-s2-jp', row[16]); updateText('out-s2-jp', row[16]);
+            setInputValue('in-s2-kana', row[17]); updateText('out-s2-kana', row[17]);
+            setInputValue('in-s2-bn', row[18]); updateText('out-s2-bn', row[18]);
+
+            setInputValue('in-w3-jp', row[19]); updateText('out-w3-jp', row[19]);
+            setInputValue('in-w3-bn', row[20]); updateText('out-w3-bn', row[20]);
+            setInputValue('in-w3-en', row[21]); updateText('out-w3-en', row[21]);
+            setInputValue('in-s3-jp', row[22]); updateText('out-s3-jp', row[22]);
+            setInputValue('in-s3-kana', row[23]); updateText('out-s3-kana', row[23]);
+            setInputValue('in-s3-bn', row[24]); updateText('out-s3-bn', row[24]);
+
+            drawStrokes(row[2] || "");
+
+            // Reset save button state
+            const saveBtn = document.getElementById('save-btn');
+            saveBtn.style.background = 'linear-gradient(135deg, #e67e22, #d35400)';
+            saveBtn.style.borderColor = '#f39c12';
+            saveBtn.innerHTML = '💾 Save Changes to Sheet';
+        }
+
+        async function drawStrokes(kanji) {
+            if(!kanji) return;
+            try {
+                let actualKanji = kanji.trim()[0]; 
+                let hexCode = actualKanji.codePointAt(0).toString(16).toLowerCase().padStart(5, '0');
+                let svgUrl = `https://cdn.jsdelivr.net/gh/KanjiVG/kanjivg@master/kanji/${hexCode}.svg`;
+                
+                const response = await fetch(svgUrl);
+                if(!response.ok) throw new Error("Stroke images not found.");
+                
+                let svgText = await response.text();
+                let parser = new DOMParser();
+                let doc = parser.parseFromString(svgText, "image/svg+xml");
+                doc.querySelectorAll("text").forEach(t => t.remove());
+
+                let paths = doc.querySelectorAll("path");
+                let strokeCount = paths.length;
+                document.getElementById('out-stroke-count').innerText = strokeCount;
+                document.getElementById('stroke-count-input').value = strokeCount;
+
+                let gridHtml = '';
+                for(let i = 1; i <= strokeCount; i++) {
+                    let cloneDoc = parser.parseFromString(svgText, "image/svg+xml");
+                    let cloneSvg = cloneDoc.querySelector("svg");
+                    cloneSvg.querySelectorAll("text").forEach(t => t.remove());
+                    let clonePaths = cloneSvg.querySelectorAll("path");
+                    clonePaths.forEach((p, index) => {
+                        let currentStroke = index + 1;
+                        if(currentStroke < i) p.setAttribute("stroke", "#b0b0b0");
+                        else if(currentStroke === i) p.setAttribute("stroke", "#c83232");
+                        else p.style.display = "none";
+                        p.setAttribute("stroke-width", "4");
+                    });
+                    gridHtml += `<div class="s-box"><div class="s-num">${i}</div>${cloneSvg.outerHTML}</div>`;
+                }
+                document.getElementById('stroke-preview-container').innerHTML = gridHtml;
+            } catch (err) {
+                document.getElementById('stroke-preview-container').innerHTML = `<div style="grid-column: span 4; text-align:center; font-size:12px; padding:10px;">Stroke data not found.</div>`;
+            }
+        }
+
+        // Single Kanji fetch function
+        async function fetchKanjiData() {
+            const kanji = document.getElementById('kanji-input').value.trim();
+            const msg = document.getElementById('sheet-msg');
+            if(!kanji) { alert('Please enter a Kanji first!'); return; }
+            msg.innerText = 'Fetching single kanji...';
+            msg.style.color = "yellow";
+
+            try {
+                const textRes = await fetch(`https://kanjiapi.dev/v1/kanji/${kanji}`);
+                if(textRes.ok) {
+                    const data = await textRes.json();
+                    const cleanOnYomi = (data.on_readings.slice(0, 3).join(', ') || "").replace(/\./g, '');
+                    const cleanKunYomi = (data.kun_readings.slice(0, 3).join(', ') || "").replace(/\./g, '');
+                    
+                    setInputValue('on-input', cleanOnYomi); updateText('out-on', cleanOnYomi);
+                    setInputValue('kun-input', cleanKunYomi); updateText('out-kun', cleanKunYomi);
+                    let firstKun = cleanKunYomi.split(',')[0] || cleanOnYomi.split(',')[0];
+                    updateText('out-kun-copy', firstKun);
+                }
+
+                const wordRes = await fetch(`https://kanjiapi.dev/v1/words/${kanji}`);
+                if(wordRes.ok) {
+                    let wordData = await wordRes.json();
+                    let validWords = wordData.filter(w => w.variants && w.variants.length > 0 && w.meanings && w.meanings.length > 0);
+                    validWords.sort((a, b) => a.variants[0].written.length - b.variants[0].written.length);
+                    
+                    for(let i=1; i<=3; i++) {
+                        let wordInfo = validWords[i-1];
+                        if(wordInfo) {
+                            let wText = `${wordInfo.variants[0].written} (${wordInfo.variants[0].pronounced})`;
+                            let eMean = wordInfo.meanings[0].glosses.join(', ').substring(0, 40); 
+
+                            setInputValue(`in-w${i}-jp`, wText); updateText(`out-w${i}-jp`, wText);
+                            if(i===1) updateText('out-basic-jp', wText); 
+                            
+                            setInputValue(`in-w${i}-en`, eMean); updateText(`out-w${i}-en`, eMean);
+                            if(i===1) { updateText('out-mean-en', eMean); updateText('out-mean-en2', eMean); }
+
+                            setInputValue(`in-w${i}-bn`, ""); updateText(`out-w${i}-bn`, "[বাংলা অর্থ]");
+                            if(i===1) { updateText('out-mean-bn', "[বাংলা অর্থ]"); updateText('out-mean-bn2', "[বাংলা অর্থ]"); }
+                            
+                            setInputValue(`in-s${i}-jp`, ""); updateText(`out-s${i}-jp`, "[বাক্য লিখুন]");
+                            setInputValue(`in-s${i}-kana`, ""); updateText(`out-s${i}-kana`, "");
+                            setInputValue(`in-s${i}-bn`, ""); updateText(`out-s${i}-bn`, "[বাংলা অর্থ]");
+                        }
+                    }
+                }
+                await drawStrokes(kanji);
+                msg.innerText = "";
+            } catch(error) {
+                msg.innerText = 'Error fetching data. Check connection.';
+                msg.style.color = "red";
+            }
+        }
+
+        window.onload = () => { drawStrokes("見"); };
+    </script>
+</body>
+</html>
